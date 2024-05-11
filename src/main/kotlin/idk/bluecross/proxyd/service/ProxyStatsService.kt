@@ -1,6 +1,7 @@
 package idk.bluecross.proxyd.service
 
 import idk.bluecross.proxyd.util.getLogger
+import org.springframework.scheduling.annotation.Async
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import java.util.concurrent.atomic.AtomicInteger

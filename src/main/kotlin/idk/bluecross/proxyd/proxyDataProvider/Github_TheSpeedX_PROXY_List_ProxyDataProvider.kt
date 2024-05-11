@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicLong
  * Collects proxies from https://github.com/TheSpeedX/PROXY-List
  */
 @Component
-class Github_TheSpeedX_PROXY_List_ProxyDataProvider(val proxyStatsService: ProxyStatsService) : IProxyDataProvider {
+class Github_TheSpeedX_PROXY_List_ProxyDataProvider : IProxyDataProvider {
     private val httpList = "https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/http.txt"
     private val socks5List = "https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/socks5.txt"
 

@@ -11,6 +11,7 @@ import reactor.core.scheduler.Schedulers
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.*
+import kotlin.math.min
 
 @Component
 class RateProxyDataFilter(
@@ -18,32 +19,34 @@ class RateProxyDataFilter(
     val proxyDataToProxyConverter: ProxyDataToProxyConverter,
 ) : IProxyDataFilter {
     private val logger = getLogger()
-    @Value("\${proxy.minRate}")
-    private val minRate = 100
 
-    @Value("\${proxy.rate.connectTimeout}")
+    @Value("\${filter.rate.min:1000}")
+    private var minRate = 1000
+
+    @Value("\${filter.rate.connectTimeout:500}")
     private var connectTimeout = 500
 
-    @Value("\${proxy.rate.readTimeout}")
+    @Value("\${filter.rate.readTimeout:500}")
     private var readTimeout = 500
 
-    @Value("\${proxy.rate.resource}")
-    private var rateResource = "https://google.com"
+    @Value("\${filter.rate.resource:https://raw.githubusercontent.com/Blu3cr0ss/test-files/main/20M}")
+    private var rateResource = "https://raw.githubusercontent.com/Blu3cr0ss/test-files/main/20M"
+    @Value("\${filter.rate.parallelism:2}")
+    private var parallelism = 2
 
     override fun filter(initialFlux: Flux<ProxyData>): Flux<ProxyData> = initialFlux
-        .parallel(8)
+        .parallel(parallelism)
         .runOn(Schedulers.parallel())
         .filter { proxyData ->
-            val str = proxyDataMapper.toProxyString(proxyData)
             return@filter runCatching {
-                if (proxyData.rate.isPresent) {
-                    if (proxyData.rate.get() < minRate) return@filter false
-                } else with(getRate(proxyData)) {
-                    if (this < minRate)
-                        return@filter false
-                    proxyData.rate = Optional.of(this)
+                if (proxyData.rate.isPresent) proxyData.delay.get()
+                else getRate(proxyData)
+            }
+                .onFailure { if (logger.isTraceEnabled) logger.trace(it) }
+                .onSuccess {
+                    proxyData.rate = Optional.of(it)
                 }
-            }.onFailure { if (logger.isTraceEnabled) logger.trace("$str | EX | ${it::class.simpleName}: ${it.message}") }.isSuccess
+                .getOrElse { return@filter false } >= minRate
         }
         .sequential()
 

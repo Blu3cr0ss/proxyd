@@ -1,8 +1,8 @@
 package idk.bluecross.proxyd.service
 
-import idk.bluecross.proxyd.entity.*
-import idk.bluecross.proxyd.proxyDataProvider.IProxyDataProvider
+import idk.bluecross.proxyd.entity.ProxyData
 import idk.bluecross.proxyd.proxyDataFilter.IProxyDataFilterChainProvider
+import idk.bluecross.proxyd.proxyDataProvider.IProxyDataProvider
 import idk.bluecross.proxyd.util.ProxyDataMapper
 import idk.bluecross.proxyd.util.ValidProxySetHolder
 import idk.bluecross.proxyd.util.getLogger
@@ -12,7 +12,7 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import reactor.core.Disposable
 import reactor.core.publisher.Flux
-import java.util.Optional
+import java.util.*
 import java.util.stream.Collectors
 
 @Service
@@ -26,12 +26,6 @@ class ProxyProviderService(
 ) : IProxyProviderService {
     private val logger = getLogger()
 
-    @Value("\${proxy.maxDelay}")
-    private val maxDelay = 200
-
-    @Value("\${proxy.minRate}")
-    private val minRate = 5
-
     override fun getProxies(): Collection<ProxyData> = validProxySetHolder.proxies
 
     override fun getProxy(): Optional<ProxyData> =
@@ -40,10 +34,14 @@ class ProxyProviderService(
     /**
      * Сheck the proxies in the set for compliance every 600000ms (10min)
      */
-    @Scheduled(initialDelay = 120000, fixedDelay = 600000)
+    @Scheduled(fixedDelay = 600000, scheduler = "proxyProviderServiceScheduler")
     private fun verifyProxies() {
-        if (logger.isInfoEnabled) logger.info("verifyProxies()")
-        if (logger.isDebugEnabled) logger.debug("Before: " + validProxySetHolder.proxies.toString())
+        if (validProxySetHolder.proxies.isEmpty()) return
+        if (logger.isDebugEnabled) {
+            logger.debug("verifyProxies()")
+            logger.debug("Before: " + validProxySetHolder.proxies.toString())
+        }
+
         var flux = Flux.fromIterable(validProxySetHolder.proxies)
         proxyDataFilterChainProvider.provide().forEach { filter ->
             flux = filter.filter(flux)
@@ -63,11 +61,10 @@ class ProxyProviderService(
      * Collect and filter proxies from all ProxyProviders every 1800000ms (30 min)
      * @see idk.bluecross.proxyd.proxyDataProvider.IProxyDataProvider
      */
-    @Scheduled(initialDelay = 0, fixedDelay = 1800000)
+    @Scheduled(initialDelay = 0, fixedRate = 1800000, scheduler = "proxyProviderServiceScheduler")
     private fun provideProxies() {
         fluxSubscription?.dispose() // stop previous flux
-        if (logger.isInfoEnabled) logger.info("provideProxies()")
-        if (logger.isDebugEnabled) logger.debug("maxDelay=$maxDelay; minRate=$minRate")
+        if (logger.isDebugEnabled) logger.debug("provideProxies()")
         var flux = Flux.fromIterable(proxyDataProviders)
             .flatMap { provider ->
                 provider.provide()

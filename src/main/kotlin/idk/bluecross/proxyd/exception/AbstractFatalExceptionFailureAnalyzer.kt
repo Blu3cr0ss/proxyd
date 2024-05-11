@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component
 import kotlin.math.log
 
 // TODO сделать что бы это работало
+@Component
 class AbstractFatalExceptionFailureAnalyzer : AbstractFailureAnalyzer<AbstractFatalException>() {
     private val logger = getLogger()
     init {

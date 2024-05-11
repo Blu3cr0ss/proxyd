@@ -4,46 +4,49 @@ import idk.bluecross.proxyd.entity.ProxyData
 import idk.bluecross.proxyd.exception.exceptions.DestinationUnreachable
 import idk.bluecross.proxyd.util.ProxyDataMapper
 import idk.bluecross.proxyd.util.getLogger
+import org.reactivestreams.Subscriber
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.scheduler.Schedulers
 import java.net.InetSocketAddress
 import java.util.*
+import kotlin.collections.HashMap
+import kotlin.collections.HashSet
+import kotlin.concurrent.thread
 
 @Component
 class DelayProxyDataFilter(
     val proxyDataMapper: ProxyDataMapper,
 ) : IProxyDataFilter {
-    @Value("\${proxy.maxDelay}")
-    private val maxDelay = 200
+    @Value("\${filter.delay.max:200}")
+    private var maxDelay = 200
 
-    @Value("\${proxy.maxDelay}")
-    private var pingTimeout = 500
+    @Value("\${filter.delay.parallelism:8}")
+    private var parallelism = 8
+
     private val logger = getLogger()
 
     override fun filter(initialFlux: Flux<ProxyData>) =
         initialFlux
-            .parallel(8)
+            .parallel(parallelism)
             .runOn(Schedulers.parallel())
             .filter { proxyData ->
-                val str = proxyDataMapper.toProxyString(proxyData)
                 return@filter runCatching {
-                    if (proxyData.delay.isPresent) {
-                        if (proxyData.delay.get() > maxDelay) return@filter false
-                    } else with(getDelay(proxyData)) {
-                        if (this > maxDelay)
-                            return@filter false
-                        proxyData.delay = Optional.of(this)
+                    if (proxyData.delay.isPresent) proxyData.delay.get()
+                    else getDelay(proxyData)
+                }
+                    .onFailure { if (logger.isTraceEnabled) logger.trace(it) }
+                    .onSuccess {
+                        proxyData.delay = Optional.of(it)
                     }
-                    return@filter true
-                }.onFailure { if (logger.isTraceEnabled) logger.trace("$str | EX | ${it::class.simpleName}: ${it.message}") }.isSuccess
+                    .getOrElse { return@filter false } <= maxDelay
             }
             .sequential()
 
     private fun getDelay(proxyData: ProxyData): Int {
         val timer = System.currentTimeMillis()
-        if (!InetSocketAddress(proxyData.ip, proxyData.port).address.isReachable(pingTimeout))
+        if (!InetSocketAddress(proxyData.ip, proxyData.port).address.isReachable(maxDelay))
             throw DestinationUnreachable()
         return (System.currentTimeMillis() - timer).toInt()
     }

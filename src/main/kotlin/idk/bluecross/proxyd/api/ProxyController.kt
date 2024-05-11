@@ -16,10 +16,10 @@ import kotlin.jvm.optionals.getOrNull
 @RequestMapping("/proxy")
 class ProxyController(
     val proxyProviderService: IProxyProviderService,
-//    val fromControllerProxyDataProvider: FromControllerProxyDataProvider,
+    val fromControllerProxyDataProvider: FromControllerProxyDataProvider,
     val proxyDataMapper: ProxyDataMapper
 ) : IProxyController {
-    @GetMapping("/getMany")
+    @GetMapping("/getMany", produces = ["text/plain"])
     override fun getMany(@RequestParam(required = false) count: Int?): String =
         proxyProviderService.getProxies()
             .apply { if (count != null) take(count) }
@@ -29,7 +29,7 @@ class ProxyController(
     override fun getOne(): String =
         proxyProviderService.getProxy().getOrNull()?.let { proxyDataMapper.toProxyString(it) } ?: ""
 
-    @GetMapping("/getManyWithMapper")
+    @GetMapping("/getManyWithMapper", produces = ["text/plain"])
     fun getManyWithMapper(
         @RequestParam(required = false) count: Int?,
         @RequestParam(required = false) type: Boolean = true,
@@ -46,13 +46,13 @@ class ProxyController(
 
     @PutMapping("/check")
     override fun check(proxyData: ProxyData) {
-//        fromControllerProxyDataProvider.send(proxyData)
+        fromControllerProxyDataProvider.send(proxyData)
     }
 
     @PutMapping("/checkString")
     override fun checkString(@RequestBody proxies: String) {
         proxies.split("\n").map { proxyDataMapper.fromProxyString(it) }.filterNotNull().forEach {
-//            fromControllerProxyDataProvider.send(it)
+            fromControllerProxyDataProvider.send(it)
         }
     }
 }
