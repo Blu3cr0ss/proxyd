@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import java.net.URL
 import java.util.*
-import kotlin.collections.ArrayList
 import kotlin.math.ceil
 
 /**
@@ -51,7 +50,7 @@ class Proxylist_geonode_com_ProxyDataProvider : IProxyDataProvider {
                 }
             i++
         }
-        if (logger.isDebugEnabled) logger.info("Time: ${System.currentTimeMillis()-time}. Count: $total")
+       logger.info("Time: ${System.currentTimeMillis()-time}. Count: $total")
         return Flux.fromIterable(proxyInfoList.map(this::convert))
     }
 

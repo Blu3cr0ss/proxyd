@@ -4,7 +4,6 @@ import idk.bluecross.proxyd.entity.ProxyDataFilterChain
 import idk.bluecross.proxyd.exception.exceptions.UninitializedProxyDataFilterChainException
 import idk.bluecross.proxyd.util.getLogger
 import org.springframework.stereotype.Component
-import org.springframework.stereotype.Service
 import kotlin.concurrent.thread
 import kotlin.system.exitProcess
 
@@ -14,7 +13,7 @@ class ProxyDataFilterChainProvider : IProxyDataFilterChainProvider {
     private val logger = getLogger()
 
     fun setFilterChain(filterChain: ProxyDataFilterChain) {
-        if (this.filterChain != null && logger.isWarnEnabled) logger.warn("Received a request to set filterChain, but filterChain is already set: $filterChain.")
+        if (this.filterChain != null) logger.warn("Received a request to set filterChain, but filterChain is already set: $filterChain.")
         this.filterChain = filterChain
     }
 

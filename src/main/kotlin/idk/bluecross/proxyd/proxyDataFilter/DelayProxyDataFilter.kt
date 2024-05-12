@@ -4,16 +4,12 @@ import idk.bluecross.proxyd.entity.ProxyData
 import idk.bluecross.proxyd.exception.exceptions.DestinationUnreachable
 import idk.bluecross.proxyd.util.ProxyDataMapper
 import idk.bluecross.proxyd.util.getLogger
-import org.reactivestreams.Subscriber
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.scheduler.Schedulers
 import java.net.InetSocketAddress
 import java.util.*
-import kotlin.collections.HashMap
-import kotlin.collections.HashSet
-import kotlin.concurrent.thread
 
 @Component
 class DelayProxyDataFilter(
@@ -36,13 +32,13 @@ class DelayProxyDataFilter(
                     if (proxyData.delay.isPresent) proxyData.delay.get()
                     else getDelay(proxyData)
                 }
-                    .onFailure { if (logger.isTraceEnabled) logger.trace(it) }
+                    .onFailure { if (it !is DestinationUnreachable) logger.debug(it) }
                     .onSuccess {
                         proxyData.delay = Optional.of(it)
                     }
                     .getOrElse { return@filter false } <= maxDelay
             }
-            .sequential()
+            .sequential(1)
 
     private fun getDelay(proxyData: ProxyData): Int {
         val timer = System.currentTimeMillis()

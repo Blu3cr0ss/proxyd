@@ -26,7 +26,7 @@ class FromControllerProxyDataProvider : IProxyDataProvider {
                 runCatching { InetAddress.getByName(proxyData.ip) }.isSuccess
             ) {
                 sink.next(proxyData)
-            } else if (logger.isWarnEnabled) logger.warn("Invalid ProxyData given: $proxyData")
+            } else logger.warn("Invalid ProxyData given: $proxyData")
         }
     }
 

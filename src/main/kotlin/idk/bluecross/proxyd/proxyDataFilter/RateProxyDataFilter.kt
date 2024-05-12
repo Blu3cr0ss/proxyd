@@ -11,7 +11,6 @@ import reactor.core.scheduler.Schedulers
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.*
-import kotlin.math.min
 
 @Component
 class RateProxyDataFilter(
@@ -31,24 +30,26 @@ class RateProxyDataFilter(
 
     @Value("\${filter.rate.resource:https://raw.githubusercontent.com/Blu3cr0ss/test-files/main/20M}")
     private var rateResource = "https://raw.githubusercontent.com/Blu3cr0ss/test-files/main/20M"
+
     @Value("\${filter.rate.parallelism:2}")
     private var parallelism = 2
 
     override fun filter(initialFlux: Flux<ProxyData>): Flux<ProxyData> = initialFlux
-        .parallel(parallelism)
+        .parallel(parallelism, 1)
         .runOn(Schedulers.parallel())
         .filter { proxyData ->
             return@filter runCatching {
                 if (proxyData.rate.isPresent) proxyData.delay.get()
                 else getRate(proxyData)
             }
-                .onFailure { if (logger.isTraceEnabled) logger.trace(it) }
+                .onFailure { logger.debug(it) }
                 .onSuccess {
                     proxyData.rate = Optional.of(it)
+                    logger.debug("${proxyDataMapper.toProxyString(proxyData)} passed ${this.javaClass.simpleName}")
                 }
                 .getOrElse { return@filter false } >= minRate
         }
-        .sequential()
+        .sequential(1)
 
     /**
      * Gets speed rate to given in properties host
@@ -62,14 +63,6 @@ class RateProxyDataFilter(
         val start = System.currentTimeMillis()
         conn.inputStream.readAllBytes()
         val end = System.currentTimeMillis()
-
-        if (logger.isDebugEnabled) logger.debug(
-            "${
-                proxyDataMapper.toProxyString(
-                    proxyData
-                )
-            } RETURNED ${conn.responseCode} ${conn.responseMessage}. Content-Length=${conn.contentLength}"
-        )
 
         return (conn.contentLength / (end - start)).toInt()     //kb/s
     }

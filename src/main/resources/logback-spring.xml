@@ -5,41 +5,42 @@
 
     <appender name="Console"
               class="ch.qos.logback.core.ConsoleAppender">
+        <withJansi>true</withJansi>
         <layout class="ch.qos.logback.classic.PatternLayout">
             <Pattern>
-                %date %-5level [%-32.32thread] %-32.32logger{32} -> %msg%n%throwable
+                %date %highlight(%-5level) [%-32.32thread] %cyan(%-32.32logger{32}) %green(->) %msg%n %red(%throwable)
             </Pattern>
         </layout>
     </appender>
 
-    <appender name="RollingFile"
-              class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="File"
+              class="ch.qos.logback.core.FileAppender">
+        <param name="Append" value="false" />
         <file>${LOGS}/default.log</file>
+        <withJansi>true</withJansi>
         <encoder
                 class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
             <Pattern>
-                %date %-5level [%-32.32thread] %-32.32logger{32} -> %msg%n%throwable
+                %date %highlight(%-5level) [%-32.32thread] %cyan(%-32.32logger{32}) %green(->) %msg%n %red(%throwable)
             </Pattern>
         </encoder>
-
-        <rollingPolicy
-                class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <!-- rollover daily and when the file reaches 10 MegaBytes -->
-            <fileNamePattern>${LOGS}/archived/spring-boot-logger-%d{yyyy-MM-dd}.%i.log
-            </fileNamePattern>
-            <timeBasedFileNamingAndTriggeringPolicy
-                    class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-                <maxFileSize>10MB</maxFileSize>
-            </timeBasedFileNamingAndTriggeringPolicy>
+        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+            <FileNamePattern>${LOGS}/old/default.%i.log</FileNamePattern>
+            <MinIndex>1</MinIndex>
+            <MaxIndex>10</MaxIndex>
         </rollingPolicy>
+            <triggeringPolicy
+                    class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+                <maxFileSize>100MB</maxFileSize>
+            </triggeringPolicy>
     </appender>
 
-    <root level="TRACE">
-        <appender-ref ref="Console" />
-    </root>
+    <logger name="idk.bluecross.proxyd" level="DEBUG" additivity="false">
+        <appender-ref ref="File" />
+    </logger>
 
-    <root level="DEBUG">
-        <appender-ref ref="RollingFile" />
+    <root level="INFO">
+        <appender-ref ref="Console" />
     </root>
 
 </configuration>
