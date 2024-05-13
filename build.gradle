@@ -26,11 +26,10 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
-var debugModeSet = false // avoid printing info about debug several times
-tasks.withType(JavaExec) {
+bootRun{
+	jvmArgs "-Xmx1500m"
 	if (System.getProperty('DEBUG', 'false') == 'true') {
-		if (!debugModeSet) println("DEBUG=true")
+		println("DEBUG=true")
 		jvmArgs '-Xdebug', "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=localhost:8000"
-	} else if (!debugModeSet) println("DEBUG=false")
-	debugModeSet = true
+	}
 }
