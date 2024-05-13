@@ -39,7 +39,7 @@ class RateProxyDataFilter(
         .runOn(Schedulers.parallel())
         .filter { proxyData ->
             return@filter runCatching {
-                if (proxyData.rate.isPresent) proxyData.delay.get()
+                if (proxyData.rate.isPresent) proxyData.rate.get()
                 else getRate(proxyData)
             }
                 .onFailure { logger.debug(it) }
