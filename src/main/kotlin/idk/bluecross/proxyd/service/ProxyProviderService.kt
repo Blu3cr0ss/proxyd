@@ -7,6 +7,7 @@ import idk.bluecross.proxyd.util.ProxyDataMapper
 import idk.bluecross.proxyd.util.ValidProxySetHolder
 import idk.bluecross.proxyd.util.getLogger
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import reactor.core.Disposable
@@ -18,7 +19,12 @@ import java.util.stream.Collectors
 class ProxyProviderService(
     @Autowired
     val proxyDataProviders: List<IProxyDataProvider>,
-    val proxyDataFilterChainProvider: IProxyDataFilterChainProvider,
+    @Autowired
+    @Qualifier("verifyProxyDataFilterChainProvider")
+    val verifyProxyDataFilterChainProvider: IProxyDataFilterChainProvider,
+    @Autowired
+    @Qualifier("provideProxyDataFilterChainProvider")
+    val provideProxyDataFilterChainProvider: IProxyDataFilterChainProvider,
     val validProxySetHolder: ValidProxySetHolder,
     val proxyStatsService: ProxyStatsService,
     val proxyDataMapper: ProxyDataMapper
@@ -40,7 +46,7 @@ class ProxyProviderService(
         logger.debug("Before: " + validProxySetHolder.proxies.toString())
 
         var flux = Flux.fromIterable(validProxySetHolder.proxies)
-        proxyDataFilterChainProvider.provide().forEach { filter ->
+        verifyProxyDataFilterChainProvider.provide().forEach { filter ->
             flux = filter.filter(flux)
         }
         flux.collect(Collectors.toSet()).block()!!.also { set ->
@@ -75,7 +81,7 @@ class ProxyProviderService(
                 proxyStatsService.incTotal()
             }
 
-        proxyDataFilterChainProvider.provide().forEach { f ->
+        provideProxyDataFilterChainProvider.provide().forEach { f ->
             flux = f.filter(flux)
             logger.debug("Appended ${f.javaClass.simpleName} filter")
         }

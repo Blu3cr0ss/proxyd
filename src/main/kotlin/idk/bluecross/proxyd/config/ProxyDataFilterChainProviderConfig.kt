@@ -7,8 +7,8 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 class ProxyDataFilterChainProviderConfig {
-    @Bean
-    fun proxyDataFilterChainProvider(
+    @Bean("provideProxyDataFilterChainProvider")
+    fun provideProxyDataFilterChainProvider(
         alreadyValidProxyDataFilter: AlreadyValidProxyDataFilter,
         delayProxyDataFilter: DelayProxyDataFilter,
         rateProxyDataFilter: RateProxyDataFilter,
@@ -21,6 +21,22 @@ class ProxyDataFilterChainProviderConfig {
                 delayProxyDataFilter,
                 rateProxyDataFilter,
                 countryProxyDataFilter
+            )
+        )
+        setFilterChain(chain)
+    }
+    @Bean("verifyProxyDataFilterChainProvider")
+    fun verifyProxyDataFilterChainProvider(
+        alreadyValidProxyDataFilter: AlreadyValidProxyDataFilter,
+        delayProxyDataFilter: DelayProxyDataFilter,
+        rateProxyDataFilter: RateProxyDataFilter,
+        countryProxyDataFilter: CountryProxyDataFilter
+    ) = ProxyDataFilterChainProvider().apply {
+        val chain = ProxyDataFilterChain()
+        chain.addAll(
+            linkedSetOf(
+                delayProxyDataFilter,
+                rateProxyDataFilter,
             )
         )
         setFilterChain(chain)

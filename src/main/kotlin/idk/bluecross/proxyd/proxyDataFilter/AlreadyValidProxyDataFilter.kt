@@ -9,5 +9,7 @@ import reactor.core.publisher.Flux
 class AlreadyValidProxyDataFilter(
     val validProxySetHolder: ValidProxySetHolder
 ) : IProxyDataFilter {
-    override fun filter(initialFlux: Flux<ProxyData>) = initialFlux.filter { !validProxySetHolder.proxies.contains(it) }
+    override fun filter(initialFlux: Flux<ProxyData>) = initialFlux.filter {
+        !validProxySetHolder.proxies.contains(it)
+    }
 }
