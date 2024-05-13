@@ -4,12 +4,7 @@ import idk.bluecross.proxyd.entity.ProxyData
 import idk.bluecross.proxyd.proxyDataProvider.FromControllerProxyDataProvider
 import idk.bluecross.proxyd.service.IProxyProviderService
 import idk.bluecross.proxyd.util.ProxyDataMapper
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PutMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import kotlin.jvm.optionals.getOrNull
 
 @RestController
@@ -22,7 +17,9 @@ class ProxyController(
     @GetMapping("/getMany", produces = ["text/plain"])
     override fun getMany(@RequestParam(required = false) count: Int?): String =
         proxyProviderService.getProxies()
-            .apply { if (count != null) take(count) }
+            .run {
+                if (count != null) take(count) else this
+            }
             .joinToString("\n", transform = { proxyDataMapper.toProxyString(it) })
 
     @GetMapping("/getOne")
