@@ -28,10 +28,7 @@ class DelayProxyDataFilter(
             .parallel(parallelism)
             .runOn(Schedulers.parallel())
             .filter { proxyData ->
-                return@filter runCatching {
-                    if (proxyData.delay.isPresent) proxyData.delay.get()
-                    else getDelay(proxyData)
-                }
+                return@filter runCatching { getDelay(proxyData) }
                     .onFailure { if (it !is DestinationUnreachable) logger.debug(it) }
                     .onSuccess {
                         proxyData.delay = Optional.of(it)

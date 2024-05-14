@@ -38,10 +38,7 @@ class RateProxyDataFilter(
         .parallel(parallelism, 1)
         .runOn(Schedulers.parallel())
         .filter { proxyData ->
-            return@filter runCatching {
-                if (proxyData.rate.isPresent) proxyData.rate.get()
-                else getRate(proxyData)
-            }
+            return@filter runCatching { getRate(proxyData) }
                 .onFailure { logger.debug(it) }
                 .onSuccess {
                     proxyData.rate = Optional.of(it)
