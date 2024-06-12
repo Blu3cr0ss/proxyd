@@ -36,7 +36,7 @@ class RateProxyDataFilter(
 
     override fun filter(initialFlux: Flux<ProxyData>): Flux<ProxyData> = initialFlux
         .parallel(parallelism, 1)
-        .runOn(Schedulers.parallel())
+        .runOn(Schedulers.newParallel("rate",parallelism))
         .filter { proxyData ->
             return@filter runCatching { getRate(proxyData) }
                 .onFailure { logger.debug(it) }
