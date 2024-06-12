@@ -1,7 +1,7 @@
 package idk.bluecross.proxyd.api
 
 import idk.bluecross.proxyd.entity.ProxyData
-import idk.bluecross.proxyd.proxyDataProvider.FromControllerProxyDataProvider
+import idk.bluecross.proxyd.proxyDataProvider.ControllerProxyDataProvider
 import idk.bluecross.proxyd.service.IProxyProviderService
 import idk.bluecross.proxyd.util.ProxyDataMapper
 import org.springframework.web.bind.annotation.*
@@ -11,7 +11,7 @@ import kotlin.jvm.optionals.getOrNull
 @RequestMapping("/proxy")
 class ProxyController(
     val proxyProviderService: IProxyProviderService,
-    val fromControllerProxyDataProvider: FromControllerProxyDataProvider,
+    val controllerProxyDataProvider: ControllerProxyDataProvider,
     val proxyDataMapper: ProxyDataMapper
 ) : IProxyController {
     @GetMapping("/getMany", produces = ["text/plain"])
@@ -43,13 +43,13 @@ class ProxyController(
 
     @PutMapping("/check")
     override fun check(proxyData: ProxyData) {
-        fromControllerProxyDataProvider.send(proxyData)
+        controllerProxyDataProvider.send(proxyData)
     }
 
     @PutMapping("/checkString")
     override fun checkString(@RequestBody proxies: String) {
         proxies.split("\n").map { proxyDataMapper.fromProxyString(it) }.filterNotNull().forEach {
-            fromControllerProxyDataProvider.send(it)
+            controllerProxyDataProvider.send(it)
         }
     }
 }

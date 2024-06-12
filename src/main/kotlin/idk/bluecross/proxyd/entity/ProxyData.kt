@@ -1,13 +1,14 @@
 package idk.bluecross.proxyd.entity
 
-import java.util.Objects
-import java.util.Optional
+import idk.bluecross.proxyd.proxyDataProvider.IProxyDataProvider
+import java.util.*
 
 data class ProxyData(val ip: String, val port: Int, val type: Type) {
     var delay = Optional.empty<Int>()
     var rate = Optional.empty<Int>()
     var countryCode = Optional.empty<String>()
     var anonymity = Optional.empty<Anonymity>()
+    var providedBy = Optional.empty<IProxyDataProvider>()
 
     enum class Anonymity {
         TRANSPARENT, ANONYMOUS, ELITE

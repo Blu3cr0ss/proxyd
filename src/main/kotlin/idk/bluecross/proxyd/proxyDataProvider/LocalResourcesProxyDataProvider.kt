@@ -2,11 +2,10 @@ package idk.bluecross.proxyd.proxyDataProvider
 
 import idk.bluecross.proxyd.entity.ProxyData
 import org.springframework.core.io.ClassPathResource
-import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
+import java.util.*
 
-@Component
-class LocalResourcesProxyDataProvider : IProxyDataProvider {
+class LocalResourcesProxyDataProvider(override var priority: Int = 100) : IProxyDataProvider {
     override fun provide(): Flux<ProxyData> =
         Flux.fromIterable(
             String(ClassPathResource("proxies.local").inputStream.readAllBytes()).trim().split("\n").flatMap {
@@ -21,10 +20,10 @@ class LocalResourcesProxyDataProvider : IProxyDataProvider {
                 if (split[1] == "*") {
                     val arr = arrayOfNulls<ProxyData>(65536)
                     for (i in 1..65536) {
-                        arr[i - 1] = ProxyData(split[0], i, type)
+                        arr[i - 1] = ProxyData(split[0], i, type).apply { providedBy= Optional.of(this@LocalResourcesProxyDataProvider) }
                     }
                     return@flatMap arr.asIterable()
                 }
-                return@flatMap listOf(ProxyData(split[0], split[1].toInt(), type))
+                return@flatMap listOf(ProxyData(split[0], split[1].toInt(), type).apply { providedBy= Optional.of(this@LocalResourcesProxyDataProvider) })
             })
 }
