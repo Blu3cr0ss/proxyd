@@ -15,35 +15,31 @@ import java.util.*
 class DelayProxyDataFilter(
     val proxyDataMapper: ProxyDataMapper,
 ) : IProxyDataFilter {
-    @Value("\${proxy.maxDelay}")
-    private val maxDelay = 200
+    @Value("\${filter.delay.max:200}")
+    private var maxDelay = 200
 
-    @Value("\${proxy.maxDelay}")
-    private var pingTimeout = 500
+    @Value("\${filter.delay.parallelism:8}")
+    private var parallelism = 8
+
     private val logger = getLogger()
 
     override fun filter(initialFlux: Flux<ProxyData>) =
         initialFlux
-            .parallel(8)
-            .runOn(Schedulers.parallel())
+            .parallel(parallelism,1)
+            .runOn(Schedulers.newParallel("delay", parallelism),1)
             .filter { proxyData ->
-                val str = proxyDataMapper.toProxyString(proxyData)
-                return@filter runCatching {
-                    if (proxyData.delay.isPresent) {
-                        if (proxyData.delay.get() > maxDelay) return@filter false
-                    } else with(getDelay(proxyData)) {
-                        if (this > maxDelay)
-                            return@filter false
-                        proxyData.delay = Optional.of(this)
+                return@filter runCatching { getDelay(proxyData) }
+                    .onFailure { if (it !is DestinationUnreachable) logger.debug(it) }
+                    .onSuccess {
+                        proxyData.delay = Optional.of(it)
                     }
-                    return@filter true
-                }.onFailure { if (logger.isTraceEnabled) logger.trace("$str | EX | ${it::class.simpleName}: ${it.message}") }.isSuccess
+                    .getOrElse { return@filter false } <= maxDelay
             }
-            .sequential()
+            .sequential(1)
 
     private fun getDelay(proxyData: ProxyData): Int {
         val timer = System.currentTimeMillis()
-        if (!InetSocketAddress(proxyData.ip, proxyData.port).address.isReachable(pingTimeout))
+        if (!InetSocketAddress(proxyData.ip, proxyData.port).address.isReachable(maxDelay))
             throw DestinationUnreachable()
         return (System.currentTimeMillis() - timer).toInt()
     }

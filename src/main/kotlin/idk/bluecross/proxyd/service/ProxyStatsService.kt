@@ -3,7 +3,6 @@ package idk.bluecross.proxyd.service
 import idk.bluecross.proxyd.util.getLogger
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
-import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 
 @Service
@@ -11,16 +10,20 @@ class ProxyStatsService {
     private val logger = getLogger()
 
     enum class Stats {
-        TOTAL, VALID
+        PROCESSED, VALID, FOUND
     }
 
     private val stats = hashMapOf<Stats, Any>(
-        Stats.TOTAL to AtomicLong(0),
-        Stats.VALID to AtomicLong(0)
+        Stats.PROCESSED to AtomicLong(0),
+        Stats.VALID to AtomicLong(0),
+        Stats.FOUND to AtomicLong(0)
     )
 
-    fun incTotal() {
-        (stats[Stats.TOTAL] as AtomicLong).incrementAndGet()
+    fun incProcessed() {
+        (stats[Stats.PROCESSED] as AtomicLong).incrementAndGet()
+    }
+    fun incFound(){
+        (stats[Stats.FOUND] as AtomicLong).incrementAndGet()
     }
 
     fun incValid() {

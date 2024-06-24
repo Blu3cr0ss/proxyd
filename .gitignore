@@ -38,3 +38,6 @@ out/
 
 ### Kotlin ###
 .kotlin
+
+logs/
+src/main/resources/proxies.local

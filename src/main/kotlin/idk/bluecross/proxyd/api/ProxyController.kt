@@ -1,35 +1,32 @@
 package idk.bluecross.proxyd.api
 
 import idk.bluecross.proxyd.entity.ProxyData
-import idk.bluecross.proxyd.proxyDataProvider.FromControllerProxyDataProvider
+import idk.bluecross.proxyd.proxyDataProvider.ControllerProxyDataProvider
 import idk.bluecross.proxyd.service.IProxyProviderService
 import idk.bluecross.proxyd.util.ProxyDataMapper
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PutMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import kotlin.jvm.optionals.getOrNull
 
 @RestController
 @RequestMapping("/proxy")
 class ProxyController(
     val proxyProviderService: IProxyProviderService,
-//    val fromControllerProxyDataProvider: FromControllerProxyDataProvider,
+    val controllerProxyDataProvider: ControllerProxyDataProvider,
     val proxyDataMapper: ProxyDataMapper
 ) : IProxyController {
-    @GetMapping("/getMany")
+    @GetMapping("/getMany", produces = ["text/plain"])
     override fun getMany(@RequestParam(required = false) count: Int?): String =
         proxyProviderService.getProxies()
-            .apply { if (count != null) take(count) }
+            .run {
+                if (count != null) take(count) else this
+            }
             .joinToString("\n", transform = { proxyDataMapper.toProxyString(it) })
 
     @GetMapping("/getOne")
     override fun getOne(): String =
         proxyProviderService.getProxy().getOrNull()?.let { proxyDataMapper.toProxyString(it) } ?: ""
 
-    @GetMapping("/getManyWithMapper")
+    @GetMapping("/getManyWithMapper", produces = ["text/plain"])
     fun getManyWithMapper(
         @RequestParam(required = false) count: Int?,
         @RequestParam(required = false) type: Boolean = true,
@@ -46,13 +43,13 @@ class ProxyController(
 
     @PutMapping("/check")
     override fun check(proxyData: ProxyData) {
-//        fromControllerProxyDataProvider.send(proxyData)
+        controllerProxyDataProvider.send(proxyData)
     }
 
     @PutMapping("/checkString")
     override fun checkString(@RequestBody proxies: String) {
         proxies.split("\n").map { proxyDataMapper.fromProxyString(it) }.filterNotNull().forEach {
-//            fromControllerProxyDataProvider.send(it)
+            controllerProxyDataProvider.send(it)
         }
     }
 }

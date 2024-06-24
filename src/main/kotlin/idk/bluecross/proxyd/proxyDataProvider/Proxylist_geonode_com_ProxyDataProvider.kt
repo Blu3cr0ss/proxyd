@@ -5,20 +5,18 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import idk.bluecross.proxyd.entity.ProxyData
 import idk.bluecross.proxyd.util.getLogger
-import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import java.net.URL
 import java.util.*
-import kotlin.collections.ArrayList
 import kotlin.math.ceil
 
 /**
  * https://proxylist.geonode.com/api/proxy-list
  */
-@Component
-class Proxylist_geonode_com_ProxyDataProvider : IProxyDataProvider {
+class Proxylist_geonode_com_ProxyDataProvider(override var priority: Int = 100) : IProxyDataProvider {
 
-    private val url = "https://proxylist.geonode.com/api/proxy-list?limit=500&page=#PAGE&sort_by=responseTime&sort_type=asc"
+    private val url =
+        "https://proxylist.geonode.com/api/proxy-list?limit=500&page=#PAGE&sort_by=responseTime&sort_type=asc"
     private val mapper = jacksonObjectMapper()
     private val logger = getLogger()
 
@@ -51,7 +49,7 @@ class Proxylist_geonode_com_ProxyDataProvider : IProxyDataProvider {
                 }
             i++
         }
-        if (logger.isDebugEnabled) logger.info("Time: ${System.currentTimeMillis()-time}. Count: $total")
+        logger.info("Time: ${System.currentTimeMillis() - time}. Count: $total")
         return Flux.fromIterable(proxyInfoList.map(this::convert))
     }
 
@@ -65,5 +63,6 @@ class Proxylist_geonode_com_ProxyDataProvider : IProxyDataProvider {
     ).apply {
         countryCode = Optional.of(proxyInfo.country)
         anonymity = Optional.of(ProxyData.Anonymity.valueOf(proxyInfo.anonymityLevel.uppercase()))
+        providedBy = Optional.of(this@Proxylist_geonode_com_ProxyDataProvider)
     }
 }

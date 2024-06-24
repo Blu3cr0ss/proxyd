@@ -18,34 +18,35 @@ class RateProxyDataFilter(
     val proxyDataToProxyConverter: ProxyDataToProxyConverter,
 ) : IProxyDataFilter {
     private val logger = getLogger()
-    @Value("\${proxy.minRate}")
-    private val minRate = 100
 
-    @Value("\${proxy.rate.connectTimeout}")
+    @Value("\${filter.rate.min:1000}")
+    private var minRate = 1000
+
+    @Value("\${filter.rate.connectTimeout:500}")
     private var connectTimeout = 500
 
-    @Value("\${proxy.rate.readTimeout}")
+    @Value("\${filter.rate.readTimeout:500}")
     private var readTimeout = 500
 
-    @Value("\${proxy.rate.resource}")
-    private var rateResource = "https://google.com"
+    @Value("\${filter.rate.resource:https://raw.githubusercontent.com/Blu3cr0ss/test-files/main/20M}")
+    private var rateResource = "https://raw.githubusercontent.com/Blu3cr0ss/test-files/main/20M"
+
+    @Value("\${filter.rate.parallelism:2}")
+    private var parallelism = 2
 
     override fun filter(initialFlux: Flux<ProxyData>): Flux<ProxyData> = initialFlux
-        .parallel(8)
-        .runOn(Schedulers.parallel())
+        .parallel(parallelism, 1)
+        .runOn(Schedulers.newParallel("rate", parallelism),1)
         .filter { proxyData ->
-            val str = proxyDataMapper.toProxyString(proxyData)
-            return@filter runCatching {
-                if (proxyData.rate.isPresent) {
-                    if (proxyData.rate.get() < minRate) return@filter false
-                } else with(getRate(proxyData)) {
-                    if (this < minRate)
-                        return@filter false
-                    proxyData.rate = Optional.of(this)
+            return@filter runCatching { getRate(proxyData) }
+                .onFailure { logger.debug(it) }
+                .onSuccess {
+                    proxyData.rate = Optional.of(it)
+                    logger.debug("${proxyDataMapper.toProxyString(proxyData)} passed ${this.javaClass.simpleName}")
                 }
-            }.onFailure { if (logger.isTraceEnabled) logger.trace("$str | EX | ${it::class.simpleName}: ${it.message}") }.isSuccess
+                .getOrElse { return@filter false } >= minRate
         }
-        .sequential()
+        .sequential(1)
 
     /**
      * Gets speed rate to given in properties host
@@ -59,14 +60,6 @@ class RateProxyDataFilter(
         val start = System.currentTimeMillis()
         conn.inputStream.readAllBytes()
         val end = System.currentTimeMillis()
-
-        if (logger.isDebugEnabled) logger.debug(
-            "${
-                proxyDataMapper.toProxyString(
-                    proxyData
-                )
-            } RETURNED ${conn.responseCode} ${conn.responseMessage}. Content-Length=${conn.contentLength}"
-        )
 
         return (conn.contentLength / (end - start)).toInt()     //kb/s
     }

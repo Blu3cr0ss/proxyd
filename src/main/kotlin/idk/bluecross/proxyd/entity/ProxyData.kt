@@ -1,12 +1,14 @@
 package idk.bluecross.proxyd.entity
 
-import java.util.Optional
+import idk.bluecross.proxyd.proxyDataProvider.IProxyDataProvider
+import java.util.*
 
 data class ProxyData(val ip: String, val port: Int, val type: Type) {
     var delay = Optional.empty<Int>()
     var rate = Optional.empty<Int>()
     var countryCode = Optional.empty<String>()
     var anonymity = Optional.empty<Anonymity>()
+    var providedBy = Optional.empty<IProxyDataProvider>()
 
     enum class Anonymity {
         TRANSPARENT, ANONYMOUS, ELITE
@@ -19,8 +21,8 @@ data class ProxyData(val ip: String, val port: Int, val type: Type) {
 
     override fun equals(other: Any?): Boolean {
         if (other !is ProxyData) return false
-        return other.ip == this.ip
+        return other.ip == this.ip && other.port == this.port && other.type == this.type
     }
 
-    override fun hashCode(): Int = ip.hashCode()
+    override fun hashCode(): Int = Objects.hash(ip, port, type)
 }
