@@ -1,21 +1,23 @@
 package idk.bluecross.proxyd.config
 
 import idk.bluecross.proxyd.entity.ProxyDataFilterChain
-import idk.bluecross.proxyd.proxyDataFilter.*
+import idk.bluecross.proxyd.proxyDataFilter.AlreadyValidProxyDataFilter
+import idk.bluecross.proxyd.proxyDataFilter.CountryProxyDataFilter
+import idk.bluecross.proxyd.proxyDataFilter.DelayProxyDataFilter
+import idk.bluecross.proxyd.proxyDataFilter.RateProxyDataFilter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration
-class ProxyDataFilterChainProviderConfig {
-    @Bean("provideProxyDataFilterChainProvider")
-    fun provideProxyDataFilterChainProvider(
+class ProxyDataFilterChainConfig {
+    @Bean("provideProxyDataFilterChain")
+    fun provideProxyDataFilterChain(
         alreadyValidProxyDataFilter: AlreadyValidProxyDataFilter,
         delayProxyDataFilter: DelayProxyDataFilter,
         rateProxyDataFilter: RateProxyDataFilter,
-        countryProxyDataFilter: CountryProxyDataFilter
-    ) = ProxyDataFilterChainProvider().apply {
-        val chain = ProxyDataFilterChain()
-        chain.addAll(
+        countryProxyDataFilter: CountryProxyDataFilter,
+    ) = ProxyDataFilterChain().apply {
+        addAll(
             linkedSetOf(
                 alreadyValidProxyDataFilter,
                 delayProxyDataFilter,
@@ -23,22 +25,19 @@ class ProxyDataFilterChainProviderConfig {
                 countryProxyDataFilter
             )
         )
-        setFilterChain(chain)
     }
-    @Bean("verifyProxyDataFilterChainProvider")
-    fun verifyProxyDataFilterChainProvider(
+    @Bean("verifyProxyDataFilterChain")
+    fun verifyProxyDataFilterChain(
         alreadyValidProxyDataFilter: AlreadyValidProxyDataFilter,
         delayProxyDataFilter: DelayProxyDataFilter,
         rateProxyDataFilter: RateProxyDataFilter,
         countryProxyDataFilter: CountryProxyDataFilter
-    ) = ProxyDataFilterChainProvider().apply {
-        val chain = ProxyDataFilterChain()
-        chain.addAll(
+    ) = ProxyDataFilterChain().apply {
+        addAll(
             linkedSetOf(
                 delayProxyDataFilter,
                 rateProxyDataFilter,
             )
         )
-        setFilterChain(chain)
     }
 }

@@ -25,10 +25,9 @@ class DelayProxyDataFilter(
 
     override fun filter(initialFlux: Flux<ProxyData>) =
         initialFlux
-            .parallel(parallelism)
-            .runOn(Schedulers.newParallel("delay",parallelism))
+            .parallel(parallelism,1)
+            .runOn(Schedulers.newParallel("delay", parallelism),1)
             .filter { proxyData ->
-                logger.debug(proxyData.ip)
                 return@filter runCatching { getDelay(proxyData) }
                     .onFailure { if (it !is DestinationUnreachable) logger.debug(it) }
                     .onSuccess {

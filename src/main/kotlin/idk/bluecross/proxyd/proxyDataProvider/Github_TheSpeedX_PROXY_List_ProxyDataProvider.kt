@@ -14,6 +14,7 @@ class Github_TheSpeedX_PROXY_List_ProxyDataProvider(override var priority: Int =
 
     override fun provide(): Flux<ProxyData> {
         val flux: Flux<ProxyData> = Flux.merge(
+            1,
             Flux.fromIterable(URL(httpList).readText().trim().split("\n").map { str ->
                 val split = str.split(":")
                 ProxyData(split[0], split[1].toInt(), ProxyData.Type.HTTP).apply {

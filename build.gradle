@@ -33,3 +33,7 @@ bootRun{
 		jvmArgs '-Xdebug', "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=localhost:8000"
 	}
 }
+
+test{
+	useJUnitPlatform()
+}

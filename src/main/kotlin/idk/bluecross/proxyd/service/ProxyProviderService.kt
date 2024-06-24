@@ -1,7 +1,7 @@
 package idk.bluecross.proxyd.service
 
 import idk.bluecross.proxyd.entity.ProxyData
-import idk.bluecross.proxyd.proxyDataFilter.IProxyDataFilterChainProvider
+import idk.bluecross.proxyd.entity.ProxyDataFilterChain
 import idk.bluecross.proxyd.proxyDataProvider.IProxyDataProvider
 import idk.bluecross.proxyd.util.ProxyDataMapper
 import idk.bluecross.proxyd.util.ValidProxySetHolder
@@ -12,19 +12,21 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import reactor.core.Disposable
 import reactor.core.publisher.Flux
+import reactor.core.scheduler.Schedulers
 import java.util.*
 import java.util.stream.Collectors
+import kotlin.jvm.optionals.getOrNull
 
 @Service
 class ProxyProviderService(
     @Autowired
     val proxyDataProviders: List<IProxyDataProvider>,
     @Autowired
-    @Qualifier("verifyProxyDataFilterChainProvider")
-    val verifyProxyDataFilterChainProvider: IProxyDataFilterChainProvider,
+    @Qualifier("verifyProxyDataFilterChain")
+    val verifyProxyDataFilterChainProvider: ProxyDataFilterChain,
     @Autowired
-    @Qualifier("provideProxyDataFilterChainProvider")
-    val provideProxyDataFilterChainProvider: IProxyDataFilterChainProvider,
+    @Qualifier("provideProxyDataFilterChain")
+    val provideProxyDataFilterChainProvider: ProxyDataFilterChain,
     val validProxySetHolder: ValidProxySetHolder,
     val proxyStatsService: ProxyStatsService,
     val proxyDataMapper: ProxyDataMapper
@@ -43,22 +45,30 @@ class ProxyProviderService(
     private fun verifyProxies() {
         if (validProxySetHolder.proxies.isEmpty()) return
         logger.debug("verifyProxies()")
-        logger.debug("Before: " + validProxySetHolder.proxies.toString())
+        logger.debug("Before: " + validProxySetHolder.proxies.size)
 
         var flux = Flux.fromIterable(validProxySetHolder.proxies)
-        verifyProxyDataFilterChainProvider.provide().forEach { filter ->
+
+        verifyProxyDataFilterChainProvider.forEach { filter ->
             flux = filter.filter(flux)
-        }
-        flux.collect(Collectors.toSet()).block()!!.also { set ->
-            validProxySetHolder.proxies.clear()
-            validProxySetHolder.proxies.addAll(set)
-            proxyStatsService.setValid(set.size.toLong())
+                .limitRate(1)
         }
 
-        logger.debug("After: " + validProxySetHolder.proxies.toString())
+        flux
+            .limitRate(Int.MAX_VALUE)
+            .collect(Collectors.toSet())
+            .block()!!.also { set ->
+                validProxySetHolder.proxies.clear()
+                validProxySetHolder.proxies.addAll(set)
+                proxyStatsService.setValid(set.size.toLong())
+            }
+
+        logger.debug("After: " + validProxySetHolder.proxies.size)
     }
 
     private var fluxSubscription: Disposable? = null
+    private var mergeProvidersScheduler = Schedulers.newParallel("merge", proxyDataProviders.size)
+    private var provideProxiesScheduler = Schedulers.newSingle("provideProxies")
 
     /**
      * Collect and filter proxies from all ProxyProviders every 1800000ms (30 min)
@@ -68,30 +78,45 @@ class ProxyProviderService(
     private fun provideProxies() {
         fluxSubscription?.dispose() // stop previous flux
         logger.debug("provideProxies()")
-        var flux = Flux.fromIterable(proxyDataProviders)
-            .flatMap({ provider ->
-                logger.debug(provider.javaClass.simpleName + " is working.")
-                provider.provide().also {
-                    it.count().subscribe {
-                        logger.debug("Got $it from ${provider.javaClass.simpleName}")
-                    }
-                }
-            }, proxyDataProviders.size)
+        var flux = Flux.mergePriority(
+            1,
+            compareByDescending { it.providedBy.getOrNull()?.priority },
+            *proxyDataProviders.map { provider ->
+                runCatching {
+                    provider.provide()
+                        .doOnSubscribe {
+                            logger.debug(provider.javaClass.simpleName + " started.")
+                        }
+                        .doOnNext {
+                            proxyStatsService.incFound()
+                        }
+                        .doOnComplete {
+                            logger.debug(provider.javaClass.simpleName + " stopped.")
+                        }
+                        .limitRate(Int.MAX_VALUE)
+                        .subscribeOn(mergeProvidersScheduler)
+                }.onFailure {
+                    logger.debug(it.message)
+                }.getOrElse { Flux.empty() }
+            }.toTypedArray()
+        )
             .doOnNext {
-                proxyStatsService.incTotal()
+                proxyStatsService.incProcessed()
             }
 
-        provideProxyDataFilterChainProvider.provide().forEach { f ->
+        provideProxyDataFilterChainProvider.forEach { f ->
             flux = f.filter(flux)
-            logger.debug("Appended ${f.javaClass.simpleName} filter")
+                .limitRate(1)
         }
 
         flux = flux.doOnNext { proxyData ->
-            logger.info("VALID: " + proxyDataMapper.toProxyString(proxyData))
             proxyStatsService.incValid()
             validProxySetHolder.proxies.add(proxyData)
+            logger.info("VALID: " + proxyDataMapper.toProxyString(proxyData))
         }
 
-        fluxSubscription = flux.subscribe()
+        fluxSubscription = flux
+            .limitRate(Int.MAX_VALUE)
+            .subscribeOn(provideProxiesScheduler).subscribe()
     }
 }
