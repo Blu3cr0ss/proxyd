@@ -49,7 +49,6 @@ class Proxylist_geonode_com_ProxyDataProvider(override var priority: Int = 100) 
                 }
             i++
         }
-        logger.info("Time: ${System.currentTimeMillis() - time}. Count: $total")
         return Flux.fromIterable(proxyInfoList.map(this::convert))
     }
 

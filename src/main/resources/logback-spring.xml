@@ -35,10 +35,6 @@
 <!--        </triggeringPolicy>-->
     </appender>
 
-    <logger name="idk.bluecross.proxyd" level="INFO">
-        <appender-ref ref="Console"/>
-    </logger>
-
     <logger name="idk.bluecross.proxyd" level="DEBUG">
         <appender-ref ref="File"/>
     </logger>
@@ -46,5 +42,9 @@
     <logger name="reactor" level="DEBUG">
         <appender-ref ref="File"/>
     </logger>
+
+    <root level="ERROR">
+        <appender-ref ref="Console"/>
+    </root>
 
 </configuration>

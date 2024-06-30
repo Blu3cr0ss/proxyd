@@ -36,7 +36,7 @@ class ProxyProviderService(
     override fun getProxies(): Collection<ProxyData> = validProxySetHolder.proxies
 
     override fun getProxy(): Optional<ProxyData> =
-        if (validProxySetHolder.proxies.isEmpty()) Optional.empty() else Optional.of(validProxySetHolder.proxies.first())
+        if (validProxySetHolder.proxies.isEmpty()) Optional.empty() else Optional.of(validProxySetHolder.proxies.random())
 
     /**
      * Сheck the proxies in the set for compliance every 600000ms (10min)
