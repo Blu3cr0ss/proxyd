@@ -41,7 +41,7 @@ class ProxyProviderService(
     /**
      * Сheck the proxies in the set for compliance every 600000ms (10min)
      */
-    @Scheduled(fixedDelay = 600000, scheduler = "proxyProviderServiceScheduler")
+    @Scheduled(initialDelay = 600000, fixedDelay = 600000, scheduler = "proxyProviderServiceScheduler")
     private fun verifyProxies() {
         if (validProxySetHolder.proxies.isEmpty()) return
         logger.debug("verifyProxies()")
