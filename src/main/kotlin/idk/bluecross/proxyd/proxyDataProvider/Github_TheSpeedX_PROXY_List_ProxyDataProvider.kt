@@ -17,13 +17,13 @@ class Github_TheSpeedX_PROXY_List_ProxyDataProvider(override var priority: Int =
             1,
             Flux.fromIterable(URL(httpList).readText().trim().split("\n").map { str ->
                 val split = str.split(":")
-                ProxyData(split[0], split[1].toInt(), ProxyData.Type.HTTP).apply {
+                ProxyData(ProxyData.Type.HTTP, split[0], split[1].toInt()).apply {
                     providedBy = Optional.of(this@Github_TheSpeedX_PROXY_List_ProxyDataProvider)
                 }
             }),
             Flux.fromIterable(URL(socks5List).readText().trim().split("\n").map { str ->
                 val split = str.split(":")
-                ProxyData(split[0], split[1].toInt(), ProxyData.Type.SOCKS).apply {
+                ProxyData(ProxyData.Type.SOCKS, split[0], split[1].toInt()).apply {
                     providedBy = Optional.of(this@Github_TheSpeedX_PROXY_List_ProxyDataProvider)
                 }
             })

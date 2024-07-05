@@ -13,7 +13,7 @@ class ProxyDataMapper {
         val addr = string.substring(type.name.length + 1).split(":")
         val ip = addr[0]
         val port = addr[1].toInt()
-        return@runCatching ProxyData(ip, port, type)
+        return@runCatching ProxyData(type,ip, port)
     }.getOrNull()
 
 

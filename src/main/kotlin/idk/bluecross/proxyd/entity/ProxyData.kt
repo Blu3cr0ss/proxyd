@@ -4,7 +4,7 @@ import idk.bluecross.proxyd.proxyDataProvider.IProxyDataProvider
 import java.net.Proxy
 import java.util.*
 
-data class ProxyData(val ip: String, val port: Int, val type: Type) {
+data class ProxyData( val type: Type,val ip: String, val port: Int) {
     var delay = Optional.empty<Int>()
     var rate = Optional.empty<Int>()
     var countryCode = Optional.empty<String>()

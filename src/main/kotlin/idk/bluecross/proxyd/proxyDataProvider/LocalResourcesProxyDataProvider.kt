@@ -20,10 +20,14 @@ class LocalResourcesProxyDataProvider(override var priority: Int = 100) : IProxy
                 if (split[1] == "*") {
                     val arr = arrayOfNulls<ProxyData>(65536)
                     for (i in 1..65536) {
-                        arr[i - 1] = ProxyData(split[0], i, type).apply { providedBy= Optional.of(this@LocalResourcesProxyDataProvider) }
+                        arr[i - 1] = ProxyData(type, split[0], i).apply {
+                            providedBy = Optional.of(this@LocalResourcesProxyDataProvider)
+                        }
                     }
                     return@flatMap arr.asIterable()
                 }
-                return@flatMap listOf(ProxyData(split[0], split[1].toInt(), type).apply { providedBy= Optional.of(this@LocalResourcesProxyDataProvider) })
+                return@flatMap listOf(ProxyData(type, split[0], split[1].toInt()).apply {
+                    providedBy = Optional.of(this@LocalResourcesProxyDataProvider)
+                })
             })
 }
