@@ -1,9 +1,10 @@
 package idk.bluecross.proxyd.entity
 
 import idk.bluecross.proxyd.proxyDataProvider.IProxyDataProvider
+import java.net.Proxy
 import java.util.*
 
-data class ProxyData(val ip: String, val port: Int, val type: Type) {
+data class ProxyData( val type: Type,val ip: String, val port: Int) {
     var delay = Optional.empty<Int>()
     var rate = Optional.empty<Int>()
     var countryCode = Optional.empty<String>()
@@ -15,8 +16,15 @@ data class ProxyData(val ip: String, val port: Int, val type: Type) {
     }
 
     enum class Type {
-        HTTP, SOCKS, SOCKS4, SOCKS5
+        HTTP, SOCKS, SOCKS4, SOCKS5;
+        fun toJavaProxyType(): Proxy.Type {
+            return when(this){
+                HTTP -> Proxy.Type.HTTP
+                else -> Proxy.Type.SOCKS
+            }
+        }
     }
+
 
 
     override fun equals(other: Any?): Boolean {

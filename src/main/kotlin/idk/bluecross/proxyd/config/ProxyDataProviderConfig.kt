@@ -1,9 +1,6 @@
 package idk.bluecross.proxyd.config
 
-import idk.bluecross.proxyd.proxyDataProvider.ControllerProxyDataProvider
-import idk.bluecross.proxyd.proxyDataProvider.Github_TheSpeedX_PROXY_List_ProxyDataProvider
-import idk.bluecross.proxyd.proxyDataProvider.LocalResourcesProxyDataProvider
-import idk.bluecross.proxyd.proxyDataProvider.Proxylist_geonode_com_ProxyDataProvider
+import idk.bluecross.proxyd.proxyDataProvider.*
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -20,4 +17,7 @@ class ProxyDataProviderConfig {
 
     @Bean
     fun proxylist_geonode_com_ProxyDataProvider() = Proxylist_geonode_com_ProxyDataProvider()
+
+    @Bean
+    fun socks5_provider() = Free_proxy_world_SOCKS5_ProxyDataProvider(199)
 }

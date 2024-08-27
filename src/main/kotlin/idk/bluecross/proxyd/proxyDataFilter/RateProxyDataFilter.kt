@@ -60,6 +60,7 @@ class RateProxyDataFilter(
         val start = System.currentTimeMillis()
         conn.inputStream.readAllBytes()
         val end = System.currentTimeMillis()
+        conn.disconnect()
 
         return (conn.contentLength / (end - start)).toInt()     //kb/s
     }

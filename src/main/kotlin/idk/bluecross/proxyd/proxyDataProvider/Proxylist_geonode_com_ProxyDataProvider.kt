@@ -49,17 +49,16 @@ class Proxylist_geonode_com_ProxyDataProvider(override var priority: Int = 100) 
                 }
             i++
         }
-        logger.info("Time: ${System.currentTimeMillis() - time}. Count: $total")
         return Flux.fromIterable(proxyInfoList.map(this::convert))
     }
 
     private fun convert(proxyInfo: ProxyInfo): ProxyData = ProxyData(
-        proxyInfo.ip, proxyInfo.port, when (proxyInfo.protocols.first()) {
+        when (proxyInfo.protocols.first()) {
             "socks4" -> ProxyData.Type.SOCKS4
             "socks5" -> ProxyData.Type.SOCKS5
             "http" -> ProxyData.Type.HTTP
             else -> ProxyData.Type.HTTP
-        }
+        }, proxyInfo.ip, proxyInfo.port
     ).apply {
         countryCode = Optional.of(proxyInfo.country)
         anonymity = Optional.of(ProxyData.Anonymity.valueOf(proxyInfo.anonymityLevel.uppercase()))
