@@ -16,6 +16,8 @@ import reactor.core.scheduler.Schedulers
 import java.util.*
 import java.util.stream.Collectors
 import kotlin.jvm.optionals.getOrNull
+import kotlin.random.Random
+import kotlin.random.asJavaRandom
 
 @Service
 class ProxyProviderService(
@@ -32,12 +34,17 @@ class ProxyProviderService(
     val proxyDataMapper: ProxyDataMapper
 ) : IProxyProviderService {
     private val logger = getLogger()
+    private val RANDOM = Random(System.currentTimeMillis())
 
     override fun getProxies(): Collection<ProxyData> = validProxySetHolder.proxies
 
     override fun getProxy(): Optional<ProxyData> =
-        if (validProxySetHolder.proxies.isEmpty()) Optional.empty() else Optional.of(validProxySetHolder.proxies.random())
+        if (validProxySetHolder.proxies.isEmpty()) Optional.empty() else Optional.of(validProxySetHolder.proxies.random(RANDOM))
 
+    override fun getHttpProxies() = getProxies().filter { it.type == ProxyData.Type.HTTP }
+    override fun getSocksProxies() = getProxies().filter { it.type != ProxyData.Type.HTTP }
+    override fun getHttpProxy() = runCatching { Optional.of(getHttpProxies().random(RANDOM)) }.getOrDefault(Optional.empty())
+    override fun getSocksProxy() = runCatching { Optional.of(getSocksProxies().random(RANDOM)) }.getOrDefault(Optional.empty())
     /**
      * Сheck the proxies in the set for compliance every 600000ms (10min)
      */
@@ -96,7 +103,7 @@ class ProxyProviderService(
                         .limitRate(Int.MAX_VALUE)
                         .subscribeOn(mergeProvidersScheduler)
                 }.onFailure {
-                    logger.debug(it.message)
+                    it.printStackTrace()
                 }.getOrElse { Flux.empty() }
             }.toTypedArray()
         )
