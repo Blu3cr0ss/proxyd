@@ -1,6 +1,7 @@
 package idk.bluecross.proxyd.proxyDataFilter
 
-import idk.bluecross.proxyd.entity.ProxyData
+import idk.bluecross.proxyd.store.IProxyDataFilter
+import idk.bluecross.proxyd.store.ProxyData
 import idk.bluecross.proxyd.util.ProxyDataMapper
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component

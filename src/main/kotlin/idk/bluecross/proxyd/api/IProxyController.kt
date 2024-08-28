@@ -1,6 +1,6 @@
 package idk.bluecross.proxyd.api
 
-import idk.bluecross.proxyd.entity.ProxyData
+import idk.bluecross.proxyd.store.ProxyData
 
 interface IProxyController {
     fun getMany(count: Int?): String

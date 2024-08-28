@@ -1,6 +1,6 @@
 package idk.bluecross.proxyd.converter
 
-import idk.bluecross.proxyd.entity.ProxyData
+import idk.bluecross.proxyd.store.ProxyData
 import org.springframework.core.convert.converter.Converter
 import org.springframework.stereotype.Service
 import java.net.InetSocketAddress

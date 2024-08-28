@@ -1,10 +1,9 @@
 package idk.bluecross.proxyd.forwarder
 
-import idk.bluecross.proxyd.service.IProxyProviderService
+import idk.bluecross.proxyd.store.IProxyProviderService
 import idk.bluecross.proxyd.util.getLogger
 import java.net.ServerSocket
 import java.util.concurrent.Executors
-import java.util.concurrent.atomic.AtomicLong
 
 class ForwarderServer(
     val port: Int,

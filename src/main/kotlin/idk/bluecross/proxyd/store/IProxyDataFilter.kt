@@ -1,6 +1,5 @@
-package idk.bluecross.proxyd.proxyDataFilter
+package idk.bluecross.proxyd.store
 
-import idk.bluecross.proxyd.entity.ProxyData
 import reactor.core.publisher.Flux
 
 interface IProxyDataFilter {

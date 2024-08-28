@@ -1,8 +1,8 @@
 package idk.bluecross.proxyd.api
 
-import idk.bluecross.proxyd.entity.ProxyData
+import idk.bluecross.proxyd.store.ProxyData
 import idk.bluecross.proxyd.proxyDataProvider.ControllerProxyDataProvider
-import idk.bluecross.proxyd.service.IProxyProviderService
+import idk.bluecross.proxyd.store.IProxyProviderService
 import idk.bluecross.proxyd.util.ProxyDataMapper
 import org.springframework.web.bind.annotation.*
 import kotlin.jvm.optionals.getOrNull

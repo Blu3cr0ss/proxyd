@@ -3,7 +3,8 @@ package idk.bluecross.proxyd.proxyDataProvider
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import idk.bluecross.proxyd.entity.ProxyData
+import idk.bluecross.proxyd.store.IProxyDataProvider
+import idk.bluecross.proxyd.store.ProxyData
 import idk.bluecross.proxyd.util.getLogger
 import reactor.core.publisher.Flux
 import java.net.URL

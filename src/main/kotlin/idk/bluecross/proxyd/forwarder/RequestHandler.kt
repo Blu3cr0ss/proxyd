@@ -1,12 +1,10 @@
 package idk.bluecross.proxyd.forwarder
 
 import idk.bluecross.proxyd.forwarder.http.HttpResponseFrame
-import idk.bluecross.proxyd.service.IProxyProviderService
-import idk.bluecross.proxyd.service.ProxyProviderService
+import idk.bluecross.proxyd.store.IProxyProviderService
 import idk.bluecross.proxyd.util.getLogger
 import java.io.*
 import java.net.*
-import java.util.concurrent.CompletableFuture
 import kotlin.concurrent.thread
 import kotlin.jvm.Throws
 

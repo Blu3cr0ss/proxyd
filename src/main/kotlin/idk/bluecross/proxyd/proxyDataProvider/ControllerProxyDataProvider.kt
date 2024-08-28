@@ -1,6 +1,7 @@
 package idk.bluecross.proxyd.proxyDataProvider
 
-import idk.bluecross.proxyd.entity.ProxyData
+import idk.bluecross.proxyd.store.IProxyDataProvider
+import idk.bluecross.proxyd.store.ProxyData
 import idk.bluecross.proxyd.util.getLogger
 import reactor.core.publisher.Flux
 import reactor.core.publisher.FluxSink

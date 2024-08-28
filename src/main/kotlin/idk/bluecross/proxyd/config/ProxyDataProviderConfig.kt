@@ -20,4 +20,6 @@ class ProxyDataProviderConfig {
 
     @Bean
     fun socks5_provider() = Free_proxy_world_SOCKS5_ProxyDataProvider(199)
+    @Bean
+    fun recheck_provider() = RecheckProxyDataProvider()
 }

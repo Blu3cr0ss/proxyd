@@ -1,13 +1,10 @@
 package idk.bluecross.proxyd.proxyDataProvider
 
-import idk.bluecross.proxyd.entity.ProxyData
+import idk.bluecross.proxyd.store.IProxyDataProvider
+import idk.bluecross.proxyd.store.ProxyData
 import org.jsoup.Jsoup
 import reactor.core.publisher.Flux
-import reactor.core.publisher.FluxSink
-import reactor.core.publisher.Mono
-import java.net.URL
 import java.util.*
-import java.util.concurrent.CompletableFuture
 
 class Free_proxy_world_SOCKS5_ProxyDataProvider(override var priority: Int) : IProxyDataProvider {
     private var page = 1

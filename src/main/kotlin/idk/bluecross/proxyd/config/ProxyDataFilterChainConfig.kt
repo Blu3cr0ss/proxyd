@@ -1,6 +1,6 @@
 package idk.bluecross.proxyd.config
 
-import idk.bluecross.proxyd.entity.ProxyDataFilterChain
+import idk.bluecross.proxyd.store.ProxyDataFilterChain
 import idk.bluecross.proxyd.proxyDataFilter.AlreadyValidProxyDataFilter
 import idk.bluecross.proxyd.proxyDataFilter.CountryProxyDataFilter
 import idk.bluecross.proxyd.proxyDataFilter.DelayProxyDataFilter
@@ -19,7 +19,7 @@ class ProxyDataFilterChainConfig {
     ) = ProxyDataFilterChain().apply {
         addAll(
             linkedSetOf(
-                alreadyValidProxyDataFilter,
+//                alreadyValidProxyDataFilter,
                 delayProxyDataFilter,
                 rateProxyDataFilter,
                 countryProxyDataFilter

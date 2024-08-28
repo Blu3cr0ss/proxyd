@@ -1,7 +1,7 @@
 package idk.bluecross.proxyd.util
 
-import idk.bluecross.proxyd.entity.ProxyData
-import idk.bluecross.proxyd.entity.ProxyData.Type
+import idk.bluecross.proxyd.store.ProxyData
+import idk.bluecross.proxyd.store.ProxyData.Type
 import org.springframework.stereotype.Component
 import java.util.StringJoiner
 import kotlin.jvm.optionals.getOrNull

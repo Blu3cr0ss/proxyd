@@ -1,6 +1,5 @@
-package idk.bluecross.proxyd.service
+package idk.bluecross.proxyd.store
 
-import idk.bluecross.proxyd.entity.ProxyData
 import java.util.Optional
 
 interface IProxyProviderService {

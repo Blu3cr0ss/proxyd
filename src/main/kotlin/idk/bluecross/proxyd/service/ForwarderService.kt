@@ -1,6 +1,6 @@
 package idk.bluecross.proxyd.service
 
-import idk.bluecross.proxyd.converter.ProxyDataToProxyConverter
+import idk.bluecross.proxyd.store.IProxyProviderService
 import idk.bluecross.proxyd.forwarder.ForwarderServer
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
